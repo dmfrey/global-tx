@@ -8,10 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
@@ -33,13 +31,6 @@ public class DataSourceConfig {
 	
 	@Bean
 	@Primary
-	public PlatformTransactionManager txManagerOne( @Qualifier( "dataSourceOne" ) final DataSource dataSourceOne ) {
-		
-		return new DataSourceTransactionManager( dataSourceOne );
-	}
-	
-	@Bean
-	@Primary
 	public JdbcTemplate jdbcTemplateOne( @Qualifier( "dataSourceOne" ) final DataSource dataSourceOne ) {
 		
 		return new JdbcTemplate( dataSourceOne );
@@ -55,12 +46,6 @@ public class DataSourceConfig {
 			.addScript( "classpath:ds2-schema.sql" );
 		
 		return builder.build();
-	}
-
-	@Bean
-	public PlatformTransactionManager txManagerTwo( @Qualifier( "dataSourceTwo" ) final DataSource dataSourceTwo ) {
-		
-		return new DataSourceTransactionManager( dataSourceTwo );
 	}
 
 	@Bean

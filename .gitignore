@@ -21,3 +21,7 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+/.apt_generated/
+/bin/
+
+transaction-logs/

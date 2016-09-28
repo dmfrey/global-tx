@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import io.pivotal.distributedtx.model.Customer;
 
 @Repository
-@Transactional( transactionManager = "txManagerOne" )
 public class CustomerDao {
 
 	final String INSERT_SQL = "insert into customer (name) values(?)";
@@ -31,7 +30,7 @@ public class CustomerDao {
 		
 	}
 	
-	public Customer addCustomer( Customer customer ) throws SQLException {
+	public Customer addCustomer( Customer customer ) {
 	
 		final Customer newCustomer = customer;
 		
@@ -54,13 +53,13 @@ public class CustomerDao {
 	}
 	
 	@Transactional( readOnly = true )
-	public Customer getCustomer( final Integer customerId ) throws SQLException {
+	public Customer getCustomer( final Integer customerId ) {
 		
 		return jdbcTemplate.queryForObject( "SELECT * FROM CUSTOMER WHERE ID = ?", new Object[] { customerId }, rowMapper );
 	}
 
 	@Transactional( readOnly = true )
-	public Customer getCustomer( final String name ) throws SQLException {
+	public Customer getCustomer( final String name ) {
 		
 		return jdbcTemplate.queryForObject( "SELECT * FROM CUSTOMER WHERE NAME LIKE ?", new Object[] { "%" + name + "%" }, rowMapper );
 	}

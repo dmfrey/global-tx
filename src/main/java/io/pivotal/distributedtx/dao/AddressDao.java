@@ -19,7 +19,6 @@ import io.pivotal.distributedtx.model.Address;
 import io.pivotal.distributedtx.model.Customer;
 
 @Repository
-@Transactional( transactionManager = "txManagerTwo" )
 public class AddressDao {
 
 	final String INSERT_SQL = "insert into address (address1, address2, city, state, zip, customer_id) values(?,?,?,?,?,?)";
@@ -34,7 +33,7 @@ public class AddressDao {
 	}
 	
 	@Transactional( )
-	public Address addAddress( final Customer customer, Address address ) throws SQLException {
+	public Address addAddress( final Customer customer, Address address ) {
 		
 		address.setCustomerId( customer.getId() );
 		
@@ -64,26 +63,28 @@ public class AddressDao {
 	}
 
 	@Transactional( readOnly = true )
-	public Address getAddress( final Integer addressId ) throws SQLException {
+	public Address getAddress( final Integer addressId ) {
 		
-		return jdbcTemplate.queryForObject( "SELECT * FROM ADDRESS WHERE ID = ?", new Object[] { addressId }, new RowMapper<Address>() {
-
-			@Override
-			public Address mapRow( ResultSet rs, int rowNum ) throws SQLException {
-				
-				Address address = new Address();
-				address.setId( rs.getInt( 1 ) );
-				address.setAddress1( rs.getString( 2 ) );
-				address.setAddress2( rs.getString( 3 ) );
-				address.setCity( rs.getString( 4 ) );
-				address.setState( rs.getString( 5 ) );
-				address.setZip( rs.getString( 6 ) );
-				address.setCustomerId( rs.getInt( 7 ) );
-				
-				return address;
-			}
-			
-		});
+		return jdbcTemplate.queryForObject( "SELECT * FROM ADDRESS WHERE ID = ?", new Object[] { addressId }, rowMapper );
 	}
+	
+	private RowMapper<Address> rowMapper = new RowMapper<Address>() {
+
+		@Override
+		public Address mapRow( ResultSet rs, int rowNum ) throws SQLException {
+			
+			Address address = new Address();
+			address.setId( rs.getInt( 1 ) );
+			address.setAddress1( rs.getString( 2 ) );
+			address.setAddress2( rs.getString( 3 ) );
+			address.setCity( rs.getString( 4 ) );
+			address.setState( rs.getString( 5 ) );
+			address.setZip( rs.getString( 6 ) );
+			address.setCustomerId( rs.getInt( 7 ) );
+			
+			return address;
+		}
+		
+	};
 	
 }

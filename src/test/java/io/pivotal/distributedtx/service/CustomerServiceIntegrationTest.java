@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import io.pivotal.distributedtx.model.Address;
@@ -16,6 +18,7 @@ import io.pivotal.distributedtx.model.Customer;
 
 @RunWith( SpringRunner.class )
 @SpringBootTest
+@DirtiesContext
 public class CustomerServiceIntegrationTest {
 
 	@Autowired
@@ -43,7 +46,7 @@ public class CustomerServiceIntegrationTest {
 		assertThat( found, not( nullValue() ) );
 		assertThat( found.getId(), not( nullValue() ) );
 		assertThat( "test", equalTo( found.getName() ) );
-		
+
 	}
 	
 }

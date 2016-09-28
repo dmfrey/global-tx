@@ -4,42 +4,51 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
 
-import java.sql.SQLException;
-
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 import io.pivotal.distributedtx.model.Address;
 import io.pivotal.distributedtx.model.Customer;
 
-@RunWith( SpringRunner.class )
-@SpringBootTest
-@DirtiesContext
-public class AddressDaoIntegrationTest {
+public class AddressDaoTest {
 
-	@Autowired
+	@Rule    
+	public ExpectedException exception = ExpectedException.none();
+
+	@Mock
 	private AddressDao addressDao;
 
-	@Test
-	public void testAddAddress() throws SQLException {
+	@Before
+	public void setup() throws Exception {
+	
+		MockitoAnnotations.initMocks( this );
 		
-		Customer customer = new Customer();
-		customer.setId( 1 );
-		customer.setName( "test" );		
-
+	}
+	
+	@Test
+	public void testAddAddress() throws Exception {
+		
 		Address address = new Address();
+		address.setId( 1 );
 		address.setAddress1( "address1" );
 		address.setAddress2( "address2" );
 		address.setCity( "city" );
 		address.setState( "state" );
 		address.setZip( "zip" );
+		address.setCustomerId( 1 );
 		
-		Address created = addressDao.addAddress( customer, address );
+		given( this.addressDao.addAddress( any( Customer.class ), any( Address.class ) ) ).willReturn( address );
+
+		Address created = addressDao.addAddress( new Customer(), address );
 		assertThat( created, not( nullValue() ) );
 		assertThat( created.getId(), not( nullValue() ) );
 		assertThat( "address1", equalTo( created.getAddress1() ) );
@@ -53,20 +62,31 @@ public class AddressDaoIntegrationTest {
 	}
 	
 	@Test
-	public void testGetCustomer() throws SQLException {
+	public void testAddAddressDataAccessException() throws Exception {
 		
-		Customer customer = new Customer();
-		customer.setId( 2 );
-		customer.setName( "found" );
+		given( this.addressDao.addAddress( any( Customer.class ), any( Address.class ) ) ).willThrow( new InvalidDataAccessApiUsageException( "could not add customer" ) );
+
+		exception.expect( DataAccessException.class );
+		addressDao.addAddress( new Customer(), new Address() );
+		
+	}
+
+	@Test
+	public void testGetCustomer() throws Exception {
 		
 		Address address = new Address();
+		address.setId( 1 );
 		address.setAddress1( "found address1" );
 		address.setAddress2( "found address2" );
 		address.setCity( "found city" );
 		address.setState( "found state" );
 		address.setZip( "found zip" );
+		address.setCustomerId( 2 );
+		
+		given( this.addressDao.addAddress( any( Customer.class ), any( Address.class ) ) ).willReturn( address );
+		given( this.addressDao.getAddress( any( Integer.class ) ) ).willReturn( address );
 
-		Address created = addressDao.addAddress( customer, address );
+		Address created = addressDao.addAddress( new Customer(), address );
 		Address found = addressDao.getAddress( created.getId() );
 		assertThat( found, not( nullValue() ) );
 		assertThat( found.getId(), not( nullValue() ) );
@@ -77,6 +97,16 @@ public class AddressDaoIntegrationTest {
 		assertThat( "found zip", equalTo( found.getZip() ) );
 		assertThat( found.getCustomerId(), not( nullValue() ) );
 		assertThat( 2, equalTo( found.getCustomerId() ) );
+		
+	}
+
+	@Test
+	public void testGetAddressDataAccessException() throws Exception {
+		
+		given( this.addressDao.getAddress( any( Integer.class ) ) ).willThrow( new InvalidDataAccessApiUsageException( "could not add customer" ) );
+
+		exception.expect( DataAccessException.class );
+		addressDao.getAddress( 1 );
 		
 	}
 

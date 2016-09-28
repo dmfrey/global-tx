@@ -1,4 +1,4 @@
-package io.pivotal.distributedtx.service;
+package io.pivotal.distributedtx.dao;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -6,7 +6,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,50 +16,36 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
-import io.pivotal.distributedtx.dao.AddressDao;
-import io.pivotal.distributedtx.dao.CustomerDao;
-import io.pivotal.distributedtx.model.Address;
 import io.pivotal.distributedtx.model.Customer;
 
-public class CustomerServiceTest {
+public class CustomerDaoTest {
 
 	@Rule    
 	public ExpectedException exception = ExpectedException.none();
 
 	@Mock
 	private CustomerDao customerDao;
-	
-	@Mock
-	private AddressDao addressDao;
-
-	private CustomerService customerService;
 
 	@Before
 	public void setup() throws Exception {
-		
+	
 		MockitoAnnotations.initMocks( this );
 		
-		customerService = new CustomerService( customerDao, addressDao );
 	}
 	
 	@Test
 	public void testAddCustomer() throws Exception {
-	
+		
 		Customer customer = new Customer();
 		customer.setId( 1 );
-		customer.setName( "test" );		
-
-		given( this.customerDao.addCustomer( any( Customer.class ) ) ).willReturn( customer );
-		given( this.addressDao.addAddress( any( Customer.class ), any( Address.class ) ) ).willReturn( new Address() );
+		customer.setName( "test" );
 		
-		Customer created = customerService.addCustomer( customer, new Address() );
+		given( this.customerDao.addCustomer( any( Customer.class ) ) ).willReturn( customer );
+
+		Customer created = customerDao.addCustomer( customer );
 		assertThat( created, not( nullValue() ) );
 		assertThat( created.getId(), not( nullValue() ) );
-		assertThat( 1, equalTo( created.getId() ) );
 		assertThat( "test", equalTo( created.getName() ) );
-
-		verify( customerDao ).addCustomer( customer );
-		verify( addressDao ).addAddress( customer, new Address() );
 		
 	}
 	
@@ -70,10 +55,8 @@ public class CustomerServiceTest {
 		given( this.customerDao.addCustomer( any( Customer.class ) ) ).willThrow( new InvalidDataAccessApiUsageException( "could not add customer" ) );
 
 		exception.expect( DataAccessException.class );
-		customerService.addCustomer( new Customer(), new Address() );
+		customerDao.addCustomer( new Customer() );
 		
-		verify( customerService ).addCustomer( new Customer(), new Address() );
-
 	}
 
 	@Test
@@ -83,15 +66,15 @@ public class CustomerServiceTest {
 		customer.setId( 2 );
 		customer.setName( "found" );
 		
+		given( this.customerDao.addCustomer( any( Customer.class ) ) ).willReturn( customer );
 		given( this.customerDao.getCustomer( any( Integer.class ) ) ).willReturn( customer );
 
-		Customer found = customerService.getCustomer( 2 );
+		Customer created = customerDao.addCustomer( customer );
+		Customer found = customerDao.getCustomer( created.getId() );
 		assertThat( found, not( nullValue() ) );
 		assertThat( found.getId(), not( nullValue() ) );
 		assertThat( "found", equalTo( found.getName() ) );
 		
-		verify( customerDao ).getCustomer( 2 );
-
 	}
 
 	@Test
@@ -100,7 +83,7 @@ public class CustomerServiceTest {
 		given( this.customerDao.getCustomer( any( Integer.class ) ) ).willThrow( new InvalidDataAccessApiUsageException( "could not add customer" ) );
 
 		exception.expect( DataAccessException.class );
-		customerService.getCustomer( 1 );
+		customerDao.getCustomer( 1 );
 		
 	}
 
